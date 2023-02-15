@@ -5,10 +5,14 @@ namespace build
 {
     internal class Build
     {
+        private const string InstallMinver = "install-minver";
+        private const string Minver = "minver";
+
         private const string Clean = "clean";
         private const string Restore = "restore";
         private const string Compile = "compile";
         private const string Test = "test";
+
         private const string Pack = "pack";
         private const string Publish = "publish";
 
@@ -17,6 +21,18 @@ namespace build
             const string solutionName = "Osnova.sln";
 
             Target("default", DependsOn(Compile));
+
+            Target(InstallMinver, IgnoreIfFailed(() =>
+            {
+                Run("dotnet", "tool install --global minver-cli --version 4.2.0");
+            }));
+
+            string version = null;
+            Target(Minver, DependsOn(InstallMinver), async () =>
+            {
+                version = await ReadAsync("minver", "-t v");
+                Console.WriteLine("Version: {0}", version);
+            });
 
             Target(Clean, () =>
             {
@@ -37,15 +53,14 @@ namespace build
 
             Target("ci", DependsOn("default"));
 
-            var nugetProjects = new string[]
-            {
+            string[] nugetProjects = {
                 "./src/Osnova",
                 "./src/extensions/Osnova.Markdown",
                 "./src/extensions/Osnova.Prism"
             };
 
-            Target(Pack, DependsOn(Compile), ForEach(nugetProjects), project =>
-                Run("dotnet", $"pack {project} -o ./artifacts --configuration Release"));
+            Target(Pack, DependsOn(Compile, Minver), ForEach(nugetProjects), project =>
+                Run("dotnet", $"pack {project} -o ./artifacts --configuration Release -p:PackageVersion={version}"));
 
             RunTargetsAndExit(args);
         }
