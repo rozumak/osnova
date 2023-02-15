@@ -55,8 +55,8 @@ namespace build
 
             string[] nugetProjects = {
                 "./src/Osnova",
-                "./src/extensions/Osnova.Markdown",
-                "./src/extensions/Osnova.Prism"
+                "./src/Extensions/Osnova.Markdown",
+                "./src/Extensions/Osnova.Prism"
             };
 
             Target(Pack, DependsOn(Compile, Minver), ForEach(nugetProjects), project =>
