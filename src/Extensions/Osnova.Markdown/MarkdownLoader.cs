@@ -1,49 +1,37 @@
 ﻿using Markdig;
-using Markdig.Extensions.Yaml;
-using Markdig.Syntax;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+using Microsoft.Extensions.Options;
 
 namespace Osnova.Markdown;
 
 public class MarkdownLoader
 {
+    private readonly MarkdownLoaderOptions _options;
     private readonly MarkdownPipeline _pipeline;
 
-    public MarkdownLoader()
+    public MarkdownLoader(IOptions<MarkdownLoaderOptions> options)
     {
-        //TODO: extract this to be configured outside of ctor
-        _pipeline = new MarkdownPipelineBuilder()
-            .UseYamlFrontMatter()
-            //.UseHighlightCode(new PrismCodeHighlighterProvider())
-            .Build();
+        _options = options.Value;
+        _pipeline = _options.PipelineFactory();
     }
 
-    public async Task<MarkdownWithFrontMatter<T>> LoadMarkdownPage<T>(string fileName)
+    public async Task<MarkdownResult<T>> LoadMarkdownPage<T>(string fileName)
     {
         string markdown = await File.ReadAllTextAsync(fileName);
 
         var document = Markdig.Markdown.Parse(markdown, _pipeline);
 
-        // extract the front matter from markdown document
-        var yamlBlock = document.Descendants<YamlFrontMatterBlock>().FirstOrDefault();
+        // Try extract the front matter from markdown document
         T? frontMatterModel = default;
-
-        if (yamlBlock != null)
+        foreach (var frontMatterExtractor in _options.FrontMatterExtractors)
         {
-            var yaml = yamlBlock.Lines.ToString();
-
-            // deserialize the yaml block into a custom type
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
-
-            frontMatterModel = deserializer.Deserialize<T>(yaml);
+            if (frontMatterExtractor.Extract(document, out frontMatterModel))
+            {
+                break;
+            }
         }
 
         //TODO: make file name relative
         var content = new MarkdownContent(_pipeline, document, fileName);
-
-        return new MarkdownWithFrontMatter<T>(content, frontMatterModel);
+        return new MarkdownResult<T>(content, frontMatterModel);
     }
 }
