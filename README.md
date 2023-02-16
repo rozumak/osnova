@@ -57,8 +57,12 @@ public class IndexModel : PageModel
 
 Update `Index.cshtml` template.
 
-```html
-@page @model IndexModel @{ ViewData["Title"] = "Home page"; }
+```cshtml
+@page 
+@model IndexModel 
+@{ 
+    ViewData["Title"] = "Home page"; 
+}
 
 <h1>@Model.Message</h1>
 ```
