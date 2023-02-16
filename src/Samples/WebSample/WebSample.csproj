@@ -2,6 +2,7 @@
 
   <PropertyGroup>
 	  <Nullable>enable</Nullable>
+	  <TargetFrameworks>net7.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
