@@ -25,14 +25,17 @@ public class MarkdownLoaderOptions
     private MarkdownPipeline CreatePipeline()
     {
         var builder = new MarkdownPipelineBuilder();
-        if (CodeHighlighterProvider != null)
-        {
-            builder.UseHighlightCode(CodeHighlighterProvider);
-        }
+        builder.Configure("common");
 
+        // It's important that this setup go before code highlighter setup
         foreach (var frontMatterExtractor in FrontMatterExtractors)
         {
             frontMatterExtractor.Setup(builder);
+        }
+
+        if (CodeHighlighterProvider != null)
+        {
+            builder.UseHighlightCode(CodeHighlighterProvider);
         }
 
         return builder.Build();

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 namespace Osnova.Markdown;
 
-public class MarkdownLoader
+public class MarkdownLoader : IMarkdownLoader
 {
     private readonly MarkdownLoaderOptions _options;
     private readonly MarkdownPipeline _pipeline;
@@ -14,7 +14,7 @@ public class MarkdownLoader
         _pipeline = _options.PipelineFactory();
     }
 
-    public async Task<MarkdownResult<T>> LoadMarkdownPage<T>(string fileName)
+    public async Task<MarkdownResult<T>> LoadMarkdownPageAsync<T>(string fileName)
     {
         string markdown = await File.ReadAllTextAsync(fileName);
 

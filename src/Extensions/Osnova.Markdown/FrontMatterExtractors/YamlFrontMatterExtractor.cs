@@ -8,6 +8,20 @@ namespace Osnova.Markdown.FrontMatterExtractors;
 
 public class YamlFrontMatterExtractor : IFrontMatterExtractor
 {
+    private readonly IDeserializer _deserializer;
+
+    public YamlFrontMatterExtractor()
+    {
+        _deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+    }
+
+    public YamlFrontMatterExtractor(Deserializer deserializer)
+    {
+        _deserializer = deserializer;
+    }
+
     public void Setup(MarkdownPipelineBuilder pipeline)
     {
         pipeline.UseYamlFrontMatter();
@@ -22,12 +36,7 @@ public class YamlFrontMatterExtractor : IFrontMatterExtractor
             var yaml = yamlBlock.Lines.ToString();
 
             // Deserialize the yaml block into a custom type
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
-
-            var frontMatterModel = deserializer.Deserialize<T>(yaml);
-            result = frontMatterModel;
+            result = _deserializer.Deserialize<T>(yaml);
             return true;
         }
 
