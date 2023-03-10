@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Osnova.FileStorages;
@@ -19,7 +21,7 @@ public class PhysicalFileStorage : IFileStorage
         {
             _root = Path.IsPathRooted(outputDirectory)
                 ? outputDirectory
-                : Path.Combine(hostEnvironment.ContentRootPath, outputDirectory);
+                : Path.GetFullPath(outputDirectory);
         }
     }
 
