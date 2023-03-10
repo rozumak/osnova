@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<Nullable>enable</Nullable>
+		<Description>Prism code highlighter for Osnova applications</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

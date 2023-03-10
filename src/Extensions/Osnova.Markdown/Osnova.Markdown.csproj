@@ -2,6 +2,7 @@
 
   <PropertyGroup>
 	  <Nullable>enable</Nullable>
+	  <Description>Markdown support for Osnova applications</Description>
   </PropertyGroup>
 
   <ItemGroup>

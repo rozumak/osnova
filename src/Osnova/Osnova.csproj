@@ -2,10 +2,16 @@
 
 	<PropertyGroup>
 		<Nullable>enable</Nullable>
+		<Description>
+			Osnova is a minimalistic framework for creating static websites using ASP.NET Core and Razor Pages.
+		</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+
+		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>
