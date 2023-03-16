@@ -19,13 +19,15 @@ public class StaticPageRenderer
     private readonly IContentTypeFileExtensionProvider _fileExtensionProvider;
     private readonly IFileStorage _fileStorage;
     private readonly IHttpContextFactory _httpContextFactory;
+    private readonly LinkGenerator _linkGenerator;
 
     public StaticPageRenderer(ILogger<StaticPageRenderer> logger, IFileStorage fileStorage,
         IContentTypeFileExtensionProvider fileExtensionProvider,
-        IHttpContextFactory httpContextFactory)
+        IHttpContextFactory httpContextFactory, LinkGenerator linkGenerator)
     {
         _logger = logger;
         _httpContextFactory = httpContextFactory;
+        _linkGenerator = linkGenerator;
         _fileStorage = fileStorage;
         _fileExtensionProvider = fileExtensionProvider;
     }
@@ -49,6 +51,8 @@ public class StaticPageRenderer
 
             foreach (var routeValues in staticPaths)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 await TryRenderPageAsync(statistics, staticPage.StaticPageDescriptor, endpoint, routeValues);
             }
         }
@@ -131,7 +135,7 @@ public class StaticPageRenderer
             return;
         }
 
-        var executionHandler = new RenderPageExecutionHandler(routeValues);
+        var executionHandler = new RenderPageExecutionHandler();
         using var renderContext = CreateContext(executionHandler, descriptor, endpoint, routeValues);
 
         try
@@ -296,6 +300,10 @@ public class StaticPageRenderer
     private RenderPageContext CreateContext(IStaticPageExecutionHandler executionHandler,
         StaticPageDescriptor descriptor, RouteEndpoint endpoint, RouteValueDictionary? routeValues)
     {
+        //set page route name, it's needed for framework link generation
+        routeValues ??= new RouteValueDictionary();
+        routeValues["page"] = endpoint.DisplayName;
+
         var context = new RenderPageContext(_httpContextFactory, descriptor, endpoint, routeValues);
         var httpContext = context.HttpContext;
 
@@ -306,9 +314,9 @@ public class StaticPageRenderer
 
         //TODO: match more accurately with real http request?
         var request = httpContext.Request;
-        request.RouteValues["page"] = endpoint.DisplayName;
         request.Method = "GET";
-
+        request.Path = _linkGenerator.GetPathByRouteValues(null, routeValues);
+        
         return context;
     }
 
@@ -320,26 +328,30 @@ public class StaticPageRenderer
 
         public RouteEndpoint Endpoint { get; }
 
-        public RouteValueDictionary? RouteValues { get; }
-
         public HttpContext HttpContext { get; }
 
         public RenderPageContext(IHttpContextFactory httpContextFactory,
-            StaticPageDescriptor descriptor, RouteEndpoint endpoint, RouteValueDictionary? routeValues)
+            StaticPageDescriptor descriptor, RouteEndpoint endpoint, RouteValueDictionary routeValues)
         {
             _httpContextFactory = httpContextFactory;
 
             Descriptor = descriptor;
             Endpoint = endpoint;
-            RouteValues = routeValues;
 
             HttpContext = _httpContextFactory.Create(CreateDefaultFeatures());
+
+            var request = HttpContext.Request;
+            foreach (var routeValue in routeValues)
+            {
+                request.RouteValues.TryAdd(routeValue.Key, routeValue.Value);
+            }
         }
+
 
         public override string ToString()
         {
-            var routeValues = RouteValues?.Select(x => $"{x.Key}:{x.Value}");
-            string routeValuesString = routeValues == null ? "null" : string.Join(", ", routeValues);
+            var routeValues = HttpContext.Request.RouteValues.Select(x => $"{x.Key}:{x.Value}");
+            string routeValuesString = string.Join(", ", routeValues);
             return
                 $"[Page = {Descriptor.PageApplicationModel.RelativePath}, Endpoint = {Endpoint}, RouteValues = {{{routeValuesString}}}]";
         }
@@ -383,25 +395,9 @@ public class StaticPageRenderer
 
     private class RenderPageExecutionHandler : IStaticPageExecutionHandler
     {
-        private readonly RouteValueDictionary? _routeValues;
-
-        public RenderPageExecutionHandler(RouteValueDictionary? routeValues)
-        {
-            _routeValues = routeValues;
-        }
-
         public Task OnBeforeModelBindingAsync(CompiledPageActionDescriptor actionDescriptor,
             object handlerInstance, RouteValueDictionary routeValues)
         {
-            //filling pageContext with static route values before model binding runs
-            if (_routeValues != null)
-            {
-                foreach (var keyValue in _routeValues)
-                {
-                    routeValues.Add(keyValue.Key, keyValue.Value);
-                }
-            }
-
             return Task.CompletedTask;
         }
 
