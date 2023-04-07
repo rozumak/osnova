@@ -16,21 +16,24 @@ public class PrismCodeHighlighterProvider : ICodeHighlighterProvider
     {
         _jsEngineManager = new JavaScriptEngineManager(engine =>
         {
-            string script = ReadPrismScript();
+            string? script = ReadPrismScript("prism.js");
+            if (script == null)
+                throw new Exception($"Cant find 'prism.js' in embedded resources.");
+
             engine.Execute(script);
         });
     }
 
     public ICodeHighlighter GetCodeHighlighter()
     {
-        _cachedCodeHighlighter ??= new PrismCodeHighlighter(_jsEngineManager);
+        _cachedCodeHighlighter ??= new PrismCodeHighlighter(_jsEngineManager, ReadPrismScript);
         return _cachedCodeHighlighter;
     }
 
-    private string ReadPrismScript()
+    private string? ReadPrismScript(string script)
     {
         var assembly = Assembly.GetExecutingAssembly();
-        var resourceName = "Osnova.Prism.prism.js";
+        var resourceName = $"Osnova.Prism.{script}";
 
         using Stream? stream = assembly.GetManifestResourceStream(resourceName);
         if (stream != null)
@@ -39,6 +42,6 @@ public class PrismCodeHighlighterProvider : ICodeHighlighterProvider
             return reader.ReadToEnd();
         }
 
-        throw new Exception("Cant find 'prism.js' in embedded resources.");
+        return null;
     }
 }

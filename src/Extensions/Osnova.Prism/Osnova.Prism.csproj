@@ -12,6 +12,7 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="prism.js" />
+		<EmbeddedResource Include="languages\*.min.js" />
 	</ItemGroup>
 
 </Project>

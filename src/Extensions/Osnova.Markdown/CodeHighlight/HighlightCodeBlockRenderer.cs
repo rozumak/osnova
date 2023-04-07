@@ -53,8 +53,15 @@ public class HighlightCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
         internalRenderer.WriteLeafRawLines(obj, false, false);
         string code = stringWriter.GetStringBuilder().ToString();
 
-        var highlighter = _codeHighlighterProvider.GetCodeHighlighter();
-        code = highlighter.Highlight(code, languageCode);
+        try
+        {
+            var highlighter = _codeHighlighterProvider.GetCodeHighlighter();
+            code = highlighter.Highlight(code, languageCode);
+        }
+        catch (Exception e)
+        {
+            //TODO: logs that failed to highlight
+        }
 
         //write result
         var attributes = new HtmlAttributes();
