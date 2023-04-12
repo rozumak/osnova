@@ -8,7 +8,9 @@ public class MarkdownLoaderOptions
 {
     public IList<IFrontMatterExtractor> FrontMatterExtractors { get; }
 
-    public ICodeHighlighterProvider? CodeHighlighterProvider { get; set; }
+    public ICodeHighlighterProvider? CodeHighlighterProvider { get; private set; }
+
+    public Type? CodeHighlighterProviderType { get; private set; }
 
     public Func<MarkdownPipeline> PipelineFactory { get; set; }
 
@@ -22,6 +24,23 @@ public class MarkdownLoaderOptions
         PipelineFactory = CreatePipeline;
     }
 
+    public MarkdownLoaderOptions UseCodeHighlighterProvider(ICodeHighlighterProvider codeHighlighterProvider)
+    {
+        CodeHighlighterProvider = codeHighlighterProvider;
+        CodeHighlighterProviderType = null;
+
+        return this;
+    }
+
+    public MarkdownLoaderOptions UseCodeHighlighterProvider<T>()
+        where T : ICodeHighlighterProvider
+    {
+        CodeHighlighterProvider = null;
+        CodeHighlighterProviderType = typeof(T);
+
+        return this;
+    }
+
     private MarkdownPipeline CreatePipeline()
     {
         var builder = new MarkdownPipelineBuilder();
@@ -33,7 +52,7 @@ public class MarkdownLoaderOptions
             frontMatterExtractor.Setup(builder);
         }
 
-        if (CodeHighlighterProvider != null)
+        if (CodeHighlighterProvider != null || CodeHighlighterProviderType != null)
         {
             builder.UseHighlightCode();
         }

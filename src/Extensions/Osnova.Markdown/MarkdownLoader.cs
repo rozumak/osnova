@@ -1,8 +1,10 @@
 ﻿using Markdig;
 using Markdig.Syntax;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Osnova.Markdown.CodeHighlight;
+using Osnova.Markdown.FrontMatterExtractors;
 
 namespace Osnova.Markdown;
 
@@ -10,15 +12,29 @@ public class MarkdownLoader : IMarkdownLoader
 {
     private readonly ILogger<MarkdownLoader> _logger;
 
-    private readonly MarkdownLoaderOptions _options;
+    private readonly IList<IFrontMatterExtractor> _frontMatterExtractors;
+    private readonly ICodeHighlighterProvider? _codeHighlighterProvider;
     private readonly MarkdownPipeline _pipeline;
 
-    public MarkdownLoader(ILogger<MarkdownLoader> logger, IOptions<MarkdownLoaderOptions> options)
+    public MarkdownLoader(ILogger<MarkdownLoader> logger, IOptions<MarkdownLoaderOptions> options,
+        IServiceProvider serviceProvider)
     {
         _logger = logger;
 
-        _options = options.Value;
-        _pipeline = _options.PipelineFactory();
+        var optionsVal = options.Value;
+        _pipeline = optionsVal.PipelineFactory();
+
+        _frontMatterExtractors = optionsVal.FrontMatterExtractors;
+
+        if (optionsVal.CodeHighlighterProviderType != null)
+        {
+            _codeHighlighterProvider = (ICodeHighlighterProvider) serviceProvider
+                .GetRequiredService(optionsVal.CodeHighlighterProviderType);
+        }
+        else
+        {
+            _codeHighlighterProvider = optionsVal.CodeHighlighterProvider;
+        }
     }
 
     public async Task<MarkdownResult<T>> LoadMarkdownPageAsync<T>(string fileName)
@@ -29,7 +45,7 @@ public class MarkdownLoader : IMarkdownLoader
 
         // Try extract the front matter from markdown document
         T? frontMatterModel = default;
-        foreach (var frontMatterExtractor in _options.FrontMatterExtractors)
+        foreach (var frontMatterExtractor in _frontMatterExtractors)
         {
             if (frontMatterExtractor.Extract(document, out frontMatterModel))
             {
@@ -40,8 +56,7 @@ public class MarkdownLoader : IMarkdownLoader
         List<Func<Task>>? asyncRenderTasks = null;
 
         // Create highlight render task for this document if needed, that will be called on markdown render
-        ICodeHighlighterProvider? highlightProvider = _options.CodeHighlighterProvider;
-        if (highlightProvider != null)
+        if (_codeHighlighterProvider != null)
         {
             var codeBlocks = document
                 .Descendants<HighlightFencedCodeBlock>()
@@ -53,7 +68,7 @@ public class MarkdownLoader : IMarkdownLoader
                 {
                     try
                     {
-                        await HighlightCodeAsync(highlightProvider, codeBlocks, fileName);
+                        await HighlightCodeAsync(_codeHighlighterProvider, codeBlocks, fileName);
                     }
                     catch (Exception e)
                     {
