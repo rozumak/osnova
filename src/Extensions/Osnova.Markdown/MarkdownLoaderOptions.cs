@@ -35,7 +35,7 @@ public class MarkdownLoaderOptions
 
         if (CodeHighlighterProvider != null)
         {
-            builder.UseHighlightCode(CodeHighlighterProvider);
+            builder.UseHighlightCode();
         }
 
         return builder.Build();

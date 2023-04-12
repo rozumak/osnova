@@ -1,4 +1,5 @@
-﻿using Jint;
+﻿using System.Text;
+using Jint;
 using Jint.Native;
 using Osnova.JavaScript;
 using Osnova.Markdown.CodeHighlight;
@@ -234,7 +235,7 @@ internal class PrismCodeHighlighter : ICodeHighlighter
         _scriptReader = scriptReader;
     }
 
-    public string Highlight(string code, string languageCode)
+    public Task<string> HighlightAsync(string code, string languageCode)
     {
         _executeContext.Code = code;
         _executeContext.LanguageCode = languageCode;
@@ -242,30 +243,36 @@ internal class PrismCodeHighlighter : ICodeHighlighter
         var jsEngine = _jsEngineManager.GetEngine();
         jsEngine.Execute(_executeContext, Execute);
 
-        return _executeContext.Result;
+        // Wrap result in pre, code tags
+        var builder = new StringBuilder();
+        builder.Append("<pre><code class=\"language-");
+        builder.Append(languageCode);
+        builder.Append("\">");
+        builder.Append(_executeContext.Result);
+        builder.Append("</code></pre>");
+
+        return Task.FromResult(builder.ToString());
     }
 
     private void Execute(ExecuteContext ctx, Engine engine)
     {
-        string languageCode = ctx.LanguageCode;
-        if (s_langAliases.TryGetValue(languageCode, out string? lang))
-        {
-            languageCode = lang;
-        }
-
-        LoadLanguage(engine, languageCode);
+        LoadLanguage(engine, ctx.LanguageCode);
 
         engine.SetValue("code", ctx.Code);
-        engine.SetValue("lang", languageCode);
-        engine.Execute($"prismLang = Prism.languages['{languageCode}']");
+        engine.SetValue("lang", ctx.LanguageCode);
 
-        engine.Execute("result = Prism.highlight(code, prismLang, lang)");
+        engine.Execute("result = Prism.highlight(code, targetLang, lang)");
 
         ctx.Result = engine.GetValue("result").AsString();
     }
 
     private void LoadLanguage(Engine engine, string languageCode)
     {
+        if (s_langAliases.TryGetValue(languageCode, out string? lang))
+        {
+            languageCode = lang;
+        }
+
         // Check if language loaded by calling js and checking if prop is defined
         var targetLangJsObject = engine
             .Execute($"targetLang = Prism.languages['{languageCode}']")
@@ -282,9 +289,9 @@ internal class PrismCodeHighlighter : ICodeHighlighter
                 }
                 else if (deps is List<string> depsLangs)
                 {
-                    foreach (var lang in depsLangs)
+                    foreach (var depLang in depsLangs)
                     {
-                        LoadLanguage(engine, lang);
+                        LoadLanguage(engine, depLang);
                     }
                 }
             }
@@ -297,6 +304,9 @@ internal class PrismCodeHighlighter : ICodeHighlighter
             }
 
             engine.Execute(script);
+
+            // Load into variable that will be used in highlight call
+            engine.Execute($"targetLang = Prism.languages['{languageCode}']");
         }
     }
 

@@ -2,5 +2,5 @@
 
 public interface ICodeHighlighter
 {
-    string Highlight(string code, string languageCode);
+    Task<string> HighlightAsync(string code, string languageCode);
 }

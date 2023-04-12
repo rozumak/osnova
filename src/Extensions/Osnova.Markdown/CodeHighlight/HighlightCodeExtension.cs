@@ -1,4 +1,5 @@
 ﻿using Markdig;
+using Markdig.Parsers;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
 
@@ -6,15 +7,9 @@ namespace Osnova.Markdown.CodeHighlight;
 
 public class HighlightCodeExtension : IMarkdownExtension
 {
-    private readonly ICodeHighlighterProvider _codeHighlighterProvider;
-
-    public HighlightCodeExtension(ICodeHighlighterProvider codeHighlighterProvider)
-    {
-        _codeHighlighterProvider = codeHighlighterProvider;
-    }
-
     public void Setup(MarkdownPipelineBuilder pipeline)
     {
+        pipeline.BlockParsers.Replace<FencedCodeBlockParser>(new HighlightFencedCodeBlockParser());
     }
 
     public void Setup(MarkdownPipeline pipeline, IMarkdownRenderer renderer)
@@ -22,7 +17,7 @@ public class HighlightCodeExtension : IMarkdownExtension
         var codeBlockRenderer = renderer.ObjectRenderers.FindExact<CodeBlockRenderer>();
         if (codeBlockRenderer != null)
         {
-            var newCodeBlockRenderer = new HighlightCodeBlockRenderer(_codeHighlighterProvider, codeBlockRenderer);
+            var newCodeBlockRenderer = new HighlightCodeBlockRenderer(codeBlockRenderer);
             renderer.ObjectRenderers.Replace<CodeBlockRenderer>(newCodeBlockRenderer);
         }
     }

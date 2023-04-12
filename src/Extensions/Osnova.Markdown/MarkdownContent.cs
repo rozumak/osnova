@@ -1,41 +1,31 @@
-﻿using Markdig;
-using Markdig.Renderers;
-using Markdig.Syntax;
+﻿namespace Osnova.Markdown;
 
-namespace Osnova.Markdown;
-
-public class MarkdownContent
+public class MarkdownContent: IDisposable
 {
-    private readonly MarkdownPipeline _pipeline;
+    private readonly Stream _buffer;
 
-    private Func<string, string>? _linkRewriter;
-
-    public MarkdownDocument Document { get; }
-
-    public string? FileLocation { get; }
-
-    public Action<TextWriter> Render => RenderCore;
-
-    public MarkdownContent(MarkdownPipeline pipeline, MarkdownDocument document, string? fileLocation = null)
+    public MarkdownContent(Stream buffer)
     {
-        _pipeline = pipeline;
-        Document = document;
-        FileLocation = fileLocation;
+        _buffer = buffer;
     }
 
-    private void RenderCore(TextWriter writer)
+    public void WriteTo(TextWriter writer)
     {
-        var renderer = new HtmlRenderer(writer)
+        // Move the stream pointer to the beginning
+        _buffer.Seek(0, SeekOrigin.Begin);
+
+        using var reader = new StreamReader(_buffer, leaveOpen: true);
+        var buffer = new char[4096];
+        
+        int bytesRead;
+        while ((bytesRead = reader.Read(buffer, 0, buffer.Length)) > 0)
         {
-            LinkRewriter = _linkRewriter
-        };
-        _pipeline.Setup(renderer);
-
-        renderer.Render(Document);
+            writer.Write(buffer, 0, bytesRead);
+        }
     }
 
-    public void SetupLinkRewriter(Func<string, string> linkRewriter)
+    public void Dispose()
     {
-        _linkRewriter = linkRewriter;
+        _buffer.Dispose();
     }
 }
