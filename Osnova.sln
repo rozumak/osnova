@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".SolutionItems", ".Solution
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Osnova.Shiki", "src\Extensions\Osnova.Shiki\Osnova.Shiki.csproj", "{8D5FB51A-CEA0-4F4A-A146-3603FDDDBE06}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{2179FC2A-1FD0-42E9-932F-7992B4812254}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2179FC2A-1FD0-42E9-932F-7992B4812254}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2179FC2A-1FD0-42E9-932F-7992B4812254}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D5FB51A-CEA0-4F4A-A146-3603FDDDBE06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D5FB51A-CEA0-4F4A-A146-3603FDDDBE06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D5FB51A-CEA0-4F4A-A146-3603FDDDBE06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D5FB51A-CEA0-4F4A-A146-3603FDDDBE06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +57,7 @@ Global
 		{56EA5A7A-1C95-4543-9B2E-44792DF09F3D} = {B4F32308-9225-4588-A183-16D0E8209FCE}
 		{BBB3F8EC-AE45-4226-8B91-337F26C3FAA3} = {B4F32308-9225-4588-A183-16D0E8209FCE}
 		{2179FC2A-1FD0-42E9-932F-7992B4812254} = {E7BC18C1-E03F-48B2-A226-B38F8E2F0607}
+		{8D5FB51A-CEA0-4F4A-A146-3603FDDDBE06} = {B4F32308-9225-4588-A183-16D0E8209FCE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5A7C5BA0-65DB-4217-B746-B6A3546B2466}
