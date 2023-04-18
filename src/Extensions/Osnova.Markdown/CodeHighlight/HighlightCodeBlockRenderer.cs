@@ -15,9 +15,9 @@ public class HighlightCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 
     protected override void Write(HtmlRenderer renderer, CodeBlock obj)
     {
-        if (obj is HighlightFencedCodeBlock {HighlightedCode: { }} highlightCodeBlock)
+        if (obj is HighlightFencedCodeBlock hcb && hcb.HighlightedCode != null)
         {
-            renderer.Write(highlightCodeBlock.HighlightedCode);
+            renderer.Write(hcb.HighlightedCode);
         }
         else
         {

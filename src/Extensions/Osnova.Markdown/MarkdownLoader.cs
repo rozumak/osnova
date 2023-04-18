@@ -26,15 +26,9 @@ public class MarkdownLoader : IMarkdownLoader
 
         _frontMatterExtractors = optionsVal.FrontMatterExtractors;
 
-        if (optionsVal.CodeHighlighterProviderType != null)
-        {
-            _codeHighlighterProvider = (ICodeHighlighterProvider) serviceProvider
-                .GetRequiredService(optionsVal.CodeHighlighterProviderType);
-        }
-        else
-        {
-            _codeHighlighterProvider = optionsVal.CodeHighlighterProvider;
-        }
+        // Take from options if specified, otherwise try get from services
+        _codeHighlighterProvider = optionsVal.CodeHighlighterProvider ??
+                                   serviceProvider.GetService<ICodeHighlighterProvider>();
     }
 
     public async Task<MarkdownResult<T>> LoadMarkdownPageAsync<T>(string fileName)
