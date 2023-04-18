@@ -26,6 +26,7 @@ public class MarkdownLoaderOptions
     {
         var builder = new MarkdownPipelineBuilder();
         builder.Configure("common");
+        builder.UsePipeTables();
 
         // It's important that this setup go before code highlighter setup
         foreach (var frontMatterExtractor in FrontMatterExtractors)
