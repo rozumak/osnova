@@ -24,7 +24,7 @@ public class DebugStaticPageExecutionHandler : IStaticPageExecutionHandler
             throw new Exception();
         }
 
-        //if there no export context it's mean we are in development mode and GetStaticPaths method called on every requests
+        //if there no export context it's mean we are in development mode and GetStaticPaths method called on every request
         //for debugging purposes, result is ignored
         var pageMethodHandler = descriptor.GetStaticPathsMethodHandler;
         if (pageMethodHandler != null)

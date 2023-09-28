@@ -9,9 +9,9 @@ public class StaticPageFilter : IAsyncPageFilter
 {
     public async Task OnPageHandlerSelectionAsync(PageHandlerSelectedContext context)
     {
+        // If it's not our static page handler then do nothing
         if (!IsOnGetStaticMethod(context.HandlerMethod))
         {
-            //this is not our case doing nothing
             return;
         }
 
@@ -23,9 +23,9 @@ public class StaticPageFilter : IAsyncPageFilter
     public async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context,
         PageHandlerExecutionDelegate next)
     {
+        // If it's not our static page handler, call the regular delegate
         if (!IsOnGetStaticMethod(context.HandlerMethod))
         {
-            //it's not our static page handler call regular delegate
             await next.Invoke();
             return;
         }

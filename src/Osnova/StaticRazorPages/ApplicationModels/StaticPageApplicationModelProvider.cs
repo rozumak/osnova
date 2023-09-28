@@ -27,25 +27,34 @@ public class StaticPageApplicationModelProvider : IPageApplicationModelProvider
         var pageModel = context.PageApplicationModel;
         if (pageModel.HandlerMethods?.Count > 0)
         {
-            //TODO: remove only OnGet method if exist
             var staticMethod = pageModel.HandlerMethods
                 .FirstOrDefault(x =>
                     x.Name.Equals(StaticPageMethodNames.OnGetStatic, StringComparison.Ordinal));
 
-            if (staticMethod != null)
+            if (staticMethod == null)
             {
-                pageModel.HandlerMethods.Clear();
-                pageModel.HandlerMethods.Add(staticMethod);
+                // Do nothing it's not a static page
+                return;
+            }
 
-                var descriptor = new StaticPageDescriptor(pageModel);
+            // Register Razor Page as static page
+            var descriptor = new StaticPageDescriptor(pageModel);
 
-                var getPathsMethod = TryGetStaticPathsHandlerMethod(context);
-                if (getPathsMethod != null)
-                {
-                    descriptor.GetStaticPathsMethodHandler = _handlerFactory.Create(getPathsMethod);
-                }
+            var getPathsMethod = TryGetStaticPathsHandlerMethod(context);
+            if (getPathsMethod != null)
+            {
+                descriptor.GetStaticPathsMethodHandler = _handlerFactory.Create(getPathsMethod);
+            }
 
-                _staticPagesRegistry.RegisterStaticPage(descriptor);
+            _staticPagesRegistry.RegisterStaticPage(descriptor);
+
+            // Remove the default OnGet handler, as the new default is OnGetStatic
+            var defaultOnGetHandler = pageModel.HandlerMethods.FirstOrDefault(
+                handlerMethod => handlerMethod.Name.Equals("OnGet", StringComparison.Ordinal) &&
+                                 handlerMethod.HandlerName == null);
+            if (defaultOnGetHandler != null)
+            {
+                pageModel.HandlerMethods.Remove(defaultOnGetHandler);
             }
         }
     }
